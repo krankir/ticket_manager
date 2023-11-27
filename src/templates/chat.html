@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <body>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>File Upload</title>
+
+        <!-- Добавляем кнопку для загрузки файла -->
+        <input type="file" id="fileInput" />
+        <button onclick="uploadFile()">Upload</button>
+
+        <h1>WebSocket Chat</h1>
+        <h2>Your ID: <span id="ws-id"></span></h2>
+        <form action="" onsubmit="sendMessage(event)">
+            <input type="text" id="messageText" autocomplete="off" />
+            <button type="button" onclick="sendMessage()">Send Text</button>
+        </form>
+        <ul id='messages'></ul>
+
+        <script>
+    var client_id = {{ client_id }}
+    var telegram_id = {{ telegram_id }}  // Получаем значение telegram_id из контекста
+    var employee_id = {{ employee_id }}
+    var ticket_id = {{ ticket_id }}
+
+
+    document.querySelector("#ws-id").textContent = client_id;
+    var ws = new WebSocket(`ws://localhost:8000/chat/ws/{{ uid_ticket }}`);
+    ws.onmessage = function (event) {
+        var messages = document.getElementById('messages')
+        var message = document.createElement('li')
+        var content = document.createTextNode(event.data)
+        message.appendChild(content)
+        messages.appendChild(message)
+    };
+
+    function sendMessage() {
+        var input = document.getElementById("messageText")
+        var messageData = {
+            client_id: client_id,
+            telegram_id: telegram_id,  // Добавляем telegram_id в объект messageData
+            employee_id: employee_id,
+            ticket_id: ticket_id,
+            text: input.value
+        };
+        ws.send(JSON.stringify(messageData));
+        input.value = '';
+    }
+
+            async function uploadFile() {
+                const inputElement = document.getElementById("fileInput");
+                const file = inputElement.files[0];
+
+                if (!file) {
+                    alert("Please choose a file or enter text first.");
+                    return;
+                }
+
+                // Проверка, является ли ввод текстовым или файловым
+                if (file.type.startsWith('text')) {
+                    // Если файл текстовый, отправляем его содержимое как текстовое сообщение
+                    const text = await readFileAsText(file);
+                    ws.send(text);
+                } else {
+                    // Если файл не текстовый, читаем его как байты и отправляем по WebSocket
+                    const arrayBuffer = await readFileAsArrayBuffer(file);
+                    const byteArray = new Uint8Array(arrayBuffer);
+                    ws.send(byteArray);
+                }
+            }
+
+            function readFileAsArrayBuffer(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        resolve(event.target.result);
+                    };
+                    reader.onerror = (error) => {
+                        reject(error);
+                    };
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            function readFileAsText(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        resolve(event.target.result);
+                    };
+                    reader.onerror = (error) => {
+                        reject(error);
+                    };
+                    reader.readAsText(file);
+                });
+            }
+        </script>
+    </body>
+{% endblock %}

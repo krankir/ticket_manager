@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .ticket-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .list-item {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        span {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .btn-new {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-new:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <ul class="ticket-list">
+        {% for ticket in tickets %}
+            <li class="list-item">
+                <h4>Тикет номер <span>{{ticket.id}}</span></h4>
+                <form action='/pages/chat_client' method='post'>
+                    <input hidden name="uid_ticket" value='{{ ticket.uid_ticket }}'>
+                    <input hidden name="employee_id" value='{{ ticket.employee_id }}'>
+                    <input hidden name="client_id" value='{{ ticket.client_id }}'>
+                    <input hidden name="ticket_id" value='{{ ticket.id }}'>
+                    <button class="btn-new" type='submit' title="Рестарт">создать чат</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+{% endblock %}
